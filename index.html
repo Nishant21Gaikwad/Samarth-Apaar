@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAMARTH-APAAR | AICTE Regulation Bureau Prototype (PS 26263)</title>
+  
+  <!-- Tailwind CSS, Lucide Icons, Chart.js & QRCode.js -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            gov: {
+              50: '#F0F7FF',
+              100: '#E0EFFF',
+              500: '#2563EB',
+              600: '#1D4ED8',
+              800: '#1E3A8A',
+              900: '#0F172A'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @media print {
+      body * { visibility: hidden; }
+      #printableDegree, #printableDegree * { visibility: visible; }
+      #printableDegree { position: absolute; left: 0; top: 0; width: 100%; border: none !important; box-shadow: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans antialiased">
+
+  <!-- TOP SOVEREIGN HEADER / NAV -->
+  <header class="border-b border-slate-200 bg-white/90 backdrop-blur sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+      
+      <!-- Brand & Bureau Identity -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center font-black text-white text-xl shadow-md shadow-blue-500/20">
+          A
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-bold tracking-tight text-slate-900 text-base">SAMARTH-APAAR</span>
+            <span class="px-2 py-0.5 text-[11px] bg-blue-50 text-blue-700 border border-blue-200 rounded-full font-semibold">PS 26263</span>
+          </div>
+          <p class="text-xs text-slate-500">AICTE Regulation Bureau • National Student Data Management Platform</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex space-x-1 sm:space-x-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200">
+        <button onclick="switchTab('view-ingestion')" id="btn-view-ingestion" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-white text-blue-700 shadow-sm border border-slate-200/80 flex items-center gap-1.5">
+          <i data-lucide="upload-cloud" class="w-4 h-4 text-blue-600"></i> Intake & Ingestion
+        </button>
+        <button onclick="switchTab('view-anomalies')" id="btn-view-anomalies" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-slate-500"></i> Anomaly Center
+        </button>
+        <button onclick="switchTab('view-cockpit')" id="btn-view-cockpit" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 text-slate-500"></i> Apex Cockpit
+        </button>
+        <button onclick="switchTab('view-credentials')" id="btn-view-credentials" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
+          <i data-lucide="award" class="w-4 h-4 text-slate-500"></i> Dual-ID Degree (Req 10)
+        </button>
+        <button onclick="switchTab('view-verifier')" id="btn-view-verifier" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all text-slate-600 hover:text-slate-900 flex items-center gap-1.5">
+          <i data-lucide="qr-code" class="w-4 h-4 text-slate-500"></i> Public Verifier
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+    <!-- ========================================== -->
+    <!-- VIEW 1: INSTITUTIONAL ADMISSION & INGESTION -->
+    <!-- ========================================== -->
+    <section id="view-ingestion" class="tab-content space-y-6">
+      
+      <!-- Institution Selector & Statutory Capacity Card -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pb-6 border-b border-slate-100">
+          <div>
+            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Select AICTE-Approved Technical Institution</label>
+            <select id="instSelect" onchange="onInstituteChange()" class="bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="BVCOE">Bharati Vidyapeeth College of Engineering, Navi Mumbai (AICTE ID: 1-10294)</option>
+              <option value="COEP">COEP Technological University, Pune (AICTE ID: 1-00214)</option>
+              <option value="VJTI">Veermata Jijabai Technological Institute, Mumbai (AICTE ID: 1-05981)</option>
+            </select>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              AICTE APH Engine Active
+            </span>
+            <button onclick="resetInstitutionData()" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 rounded-xl border border-slate-200 transition">
+              Reset Roster
+            </button>
+          </div>
+        </div>
+
+        <!-- Statutory Intake Capacity Meters (APH Chapter II) -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div class="flex justify-between text-xs text-slate-600 mb-1.5 font-medium">
+              <span>Sanctioned Approved Intake</span>
+              <span id="stat-intake-ratio" class="font-bold text-slate-900">0 / 120</span>
+            </div>
+            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+              <div id="stat-intake-bar" class="bg-blue-600 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <p id="stat-intake-sub" class="text-[11px] text-slate-500 mt-1.5 font-normal">Base non-expandable quota</p>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div class="flex justify-between text-xs text-slate-600 mb-1.5 font-medium">
+              <span>Tuition Fee Waiver (TFW 5%)</span>
+              <span id="stat-tfw-ratio" class="font-bold text-emerald-700">0 / 6</span>
+            </div>
+            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+              <div id="stat-tfw-bar" class="bg-emerald-600 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1.5 font-normal">Supernumerary (Clause 2.50)</p>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div class="flex justify-between text-xs text-slate-600 mb-1.5 font-medium">
+              <span>Foreign Nat. / OCI (15%)</span>
+              <span id="stat-fn-ratio" class="font-bold text-purple-700">0 / 18</span>
+            </div>
+            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+              <div id="stat-fn-bar" class="bg-purple-600 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1.5 font-normal">Supernumerary (Clause 2.5)</p>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div class="flex justify-between text-xs text-slate-600 mb-1.5 font-medium">
+              <span>NRI Quota (Max 5%)</span>
+              <span id="stat-nri-ratio" class="font-bold text-amber-700">0 / 6</span>
+            </div>
+            <div class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+              <div id="stat-nri-bar" class="bg-amber-600 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1.5 font-normal">Subsumed within base intake</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ingestion Workstation: Left Single Entry / Right Pre-Flight Staging Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Form: Single Student Onboarding -->
+        <div class="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2 mb-4">
+              <i data-lucide="user-plus" class="w-4 h-4 text-blue-600"></i>
+              Single Student Admission Form
+            </h3>
+
+            <form id="studentForm" onsubmit="handleSingleStudentSubmit(event)" class="space-y-4 text-xs">
+              <div>
+                <label class="block text-slate-600 font-semibold mb-1">Student Legal Full Name</label>
+                <input type="text" id="inp-name" required placeholder="e.g., Nishant Dattatray Gaikwad" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <label class="block text-slate-600 font-semibold">12-Digit National APAAR ID</label>
+                  <span id="verhoeff-badge" class="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 font-medium">12 digits required</span>
+                </div>
+                <input type="text" id="inp-apaar" maxlength="12" oninput="checkApaarChecksumLive(this.value)" required placeholder="e.g., 847291043821" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-slate-600 font-semibold mb-1">College Roll No</label>
+                  <input type="text" id="inp-roll" required placeholder="BVCOE-CS-042" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                  <label class="block text-slate-600 font-semibold mb-1">Quota / Category</label>
+                  <select id="inp-quota" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
+                    <option value="REGULAR">Regular Merit</option>
+                    <option value="TFW">TFW (Tuition Fee Waiver)</option>
+                    <option value="FN_OCI">Foreign National / OCI</option>
+                    <option value="NRI">NRI Quota</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-slate-600 font-semibold mb-1">Discipline / Branch</label>
+                  <input type="text" id="inp-branch" value="Computer Engineering" class="w-full bg-slate-100 border border-slate-300 rounded-xl p-2.5 text-slate-600 font-medium" readonly>
+                </div>
+                <div>
+                  <label class="block text-slate-600 font-semibold mb-1">Academic Session</label>
+                  <input type="text" value="2026-2030" class="w-full bg-slate-100 border border-slate-300 rounded-xl p-2.5 text-slate-600 font-medium" readonly>
+                </div>
+              </div>
+
+              <button type="submit" class="w-full mt-3 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-2">
+                <i data-lucide="check" class="w-4 h-4"></i> Validate & Add to Batch
+              </button>
+            </form>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-[11px] text-slate-500">
+            <span>Fast demonstration record:</span>
+            <button onclick="fillDemoStudent()" class="text-blue-600 font-semibold hover:underline">Autofill Compliant Candidate</button>
+          </div>
+        </div>
+
+        <!-- Bulk Ingestion & Pre-Flight Staging Exceptions Grid -->
+        <div class="lg:col-span-7 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <i data-lucide="layers" class="w-4 h-4 text-emerald-600"></i>
+                Staging Roster & Pre-Flight Exception Grid
+              </h3>
+              <div class="flex gap-2">
+                <button onclick="loadSampleBatch()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg border border-slate-200 flex items-center gap-1.5 transition">
+                  <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-emerald-600"></i> Load Compliant Batch
+                </button>
+                <button onclick="clearBatch()" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold rounded-lg border border-rose-200 transition">
+                  Clear
+                </button>
+              </div>
+            </div>
+
+            <!-- Staging Table Container -->
+            <div class="overflow-x-auto max-h-72 border border-slate-200 rounded-xl">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-100 text-slate-600 font-bold sticky top-0 border-b border-slate-200">
+                  <tr>
+                    <th class="p-3">Roll No</th>
+                    <th class="p-3">Candidate Name</th>
+                    <th class="p-3">APAAR ID</th>
+                    <th class="p-3">Quota</th>
+                    <th class="p-3">Validation Status</th>
+                  </tr>
+                </thead>
+                <tbody id="stagingTableBody" class="divide-y divide-slate-100 font-mono text-slate-800">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div id="batchSummaryText" class="text-xs text-slate-500 font-medium">
+              0 records ready for final commit.
+            </div>
+            <button onclick="commitBatchToAICTE()" id="btn-commit" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-2 text-xs">
+              <i data-lucide="cloud-lightning" class="w-4 h-4"></i> Commit Validated Roster to AICTE Portal
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: 4-TIER REGULATORY ANOMALY CENTER -->
+    <!-- ========================================== -->
+    <section id="view-anomalies" class="tab-content hidden space-y-6">
+      
+      <div class="bg-blue-50 border border-blue-200 p-5 rounded-2xl">
+        <h2 class="text-base font-bold text-blue-900 flex items-center gap-2">
+          <i data-lucide="shield-alert" class="w-5 h-5 text-blue-600"></i>
+          Intelligent Algorithmic Anomaly Engine
+        </h2>
+        <p class="text-xs text-blue-800 mt-1">
+          Demonstrate how the platform catches statutory violations in real time, eliminating manual paper audits. Click any test trigger to see the immediate system response.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- TRIGGER 1: APH Chapter II Intake Breach -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">TIER 2 CHECK</span>
+              <span class="text-xs text-slate-400 font-mono">Formula: ∑E > Isanctioned</span>
+            </div>
+            <h3 class="text-sm font-bold text-slate-900 mt-2">Test: Sanctioned Capacity Overrun</h3>
+            <p class="text-xs text-slate-600 mt-1">
+              Simulates an institution attempting to commit 125 students into an approved intake division of 120.
+            </p>
+          </div>
+          <div class="mt-5">
+            <button onclick="triggerIntakeBreachDemo()" class="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
+              <i data-lucide="zap" class="w-4 h-4 text-rose-600"></i> Trigger 125/120 Intake Breach
+            </button>
+          </div>
+        </div>
+
+        <!-- TRIGGER 2: Cross-Institutional Dual Enrollment Lock -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">TIER 3 CHECK</span>
+              <span class="text-xs text-slate-400 font-mono">hash(APAAR + Session + Mode)</span>
+            </div>
+            <h3 class="text-sm font-bold text-slate-900 mt-2">Test: Cross-Campus Dual Enrollment</h3>
+            <p class="text-xs text-slate-600 mt-1">
+              Simulates a candidate actively enrolled at COEP Pune attempting to simultaneously register full-time at BVCOE.
+            </p>
+          </div>
+          <div class="mt-5">
+            <button onclick="triggerDualEnrollmentDemo()" class="w-full py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition">
+              <i data-lucide="copy" class="w-4 h-4 text-amber-600"></i> Inject Duplicate APAAR Collision
+            </button>
+          </div>
+        </div>
+
+        <!-- TRIGGER 3: Verhoeff Dihedral Group Checksum Sandbox -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">TIER 1 CHECK</span>
+              <span class="text-xs text-slate-400 font-mono">D5 Dihedral Group Mod 10</span>
+            </div>
+            <h3 class="text-sm font-bold text-slate-900 mt-2">Test: Dihedral Verhoeff Transposition</h3>
+            <p class="text-xs text-slate-600 mt-1">
+              Type any 12-digit number below to test the exact mathematical algorithm used by UIDAI and APAAR to catch typing errors:
+            </p>
+            <div class="mt-3.5">
+              <input type="text" id="sandbox-verhoeff" maxlength="12" value="847291043821" oninput="testSandboxVerhoeff(this.value)" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-900 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <div id="sandbox-verhoeff-res" class="mt-2 text-xs font-mono text-emerald-700 flex items-center gap-1.5 font-semibold">
+                <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i> Checksum mathematically valid!
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRIGGER 4: Jaro-Winkler Fuzzy Identity Reconciliation -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">TIER 4 CHECK</span>
+              <span class="text-xs text-slate-400 font-mono">Jaro-Winkler dw Metric</span>
+            </div>
+            <h3 class="text-sm font-bold text-slate-900 mt-2">Test: Fuzzy Demographic Reconciliation</h3>
+            <p class="text-xs text-slate-600 mt-1">
+              Matches institutional application records against national civil registries without rejecting slight typographical abbreviations.
+            </p>
+            <div class="grid grid-cols-2 gap-2 mt-3.5 text-xs">
+              <div>
+                <span class="text-[10px] text-slate-500 font-semibold">College Roster:</span>
+                <input type="text" id="fuzzy1" value="Nishant D Gaikwad" oninput="runFuzzyMatchTest()" class="w-full bg-slate-50 border border-slate-300 p-2 rounded-xl text-slate-900 font-mono">
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-500 font-semibold">DigiLocker Record:</span>
+                <input type="text" id="fuzzy2" value="Nishant Dattatray Gaikwad" oninput="runFuzzyMatchTest()" class="w-full bg-slate-50 border border-slate-300 p-2 rounded-xl text-slate-900 font-mono">
+              </div>
+            </div>
+            <div id="fuzzy-result" class="mt-2.5 text-xs text-slate-700 font-mono font-medium">
+              Similarity Score ($d_w$): <span class="font-bold text-emerald-700">0.938</span> (Auto-reconciled)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time Anomaly Audit Console -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+          <i data-lucide="terminal" class="w-4 h-4 text-blue-600"></i>
+          Regulatory Audit Engine Console
+        </h3>
+        <div id="anomalyAuditLog" class="bg-slate-900 text-slate-200 rounded-xl p-3.5 text-xs font-mono h-32 overflow-y-auto space-y-1.5 border border-slate-800">
+          <div class="text-slate-400">[SYSTEM READY] 4-Tier Algorithmic Rule Engine online. Listening for student intake events...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 3: AICTE APEX REGULATORY COCKPIT -->
+    <!-- ========================================== -->
+    <section id="view-cockpit" class="tab-content hidden space-y-6">
+      
+      <!-- Metrics Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+          <span class="text-xs text-slate-500 font-medium">National Capacity Utilization</span>
+          <div class="text-2xl font-black text-slate-900 mt-1">91.4%</div>
+          <span class="text-[11px] text-emerald-600 font-semibold flex items-center gap-1 mt-1">
+            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> +3.2% vs previous academic session
+          </span>
+        </div>
+        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+          <span class="text-xs text-slate-500 font-medium">Verified Active APAAR Records</span>
+          <div class="text-2xl font-black text-blue-600 mt-1">1,284,912</div>
+          <span class="text-[11px] text-slate-500 mt-1 block">Across 10,480 approved institutes</span>
+        </div>
+        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+          <span class="text-xs text-slate-500 font-medium">Flagged Intake Overruns</span>
+          <div class="text-2xl font-black text-rose-600 mt-1" id="cockpit-overruns">0</div>
+          <span class="text-[11px] text-rose-600 font-medium mt-1 block">Automated freeze active</span>
+        </div>
+        <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+          <span class="text-xs text-slate-500 font-medium">Dual Enrollments Blocked</span>
+          <div class="text-2xl font-black text-amber-600 mt-1" id="cockpit-collisions">14</div>
+          <span class="text-[11px] text-amber-600 font-medium mt-1 block">Provisional hold pending NOC</span>
+        </div>
+      </div>
+
+      <!-- Charts & Telemetry -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-8 bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="bar-chart-3" class="w-4 h-4 text-blue-600"></i>
+              State-Wise Admission Density vs Approved Intake
+            </h3>
+            <span class="text-xs text-slate-400 font-mono">Live Telemetry</span>
+          </div>
+          <div class="h-64">
+            <canvas id="stateIntakeChart"></canvas>
+          </div>
+        </div>
+
+        <div class="lg:col-span-4 bg-white border border-slate-200 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2 mb-4">
+              <i data-lucide="pie-chart" class="w-4 h-4 text-emerald-600"></i>
+              National Quota Distribution
+            </h3>
+            <div class="h-48">
+              <canvas id="quotaDistChart"></canvas>
+            </div>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-100">
+            <button onclick="exportAccreditationPackage()" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition shadow-md shadow-blue-600/20">
+              <i data-lucide="download" class="w-4 h-4"></i> Export NBA / NAAC Tier-1 Compliance Package
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 4: VERIFIABLE CREDENTIAL STUDIO (REQ 10) -->
+    <!-- ========================================== -->
+    <section id="view-credentials" class="tab-content hidden space-y-6">
+      
+      <div class="bg-indigo-50 border border-indigo-200 p-5 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 class="text-base font-bold text-indigo-900 flex items-center gap-2">
+            <i data-lucide="award" class="w-5 h-5 text-indigo-600"></i>
+            Dual-Identifier Degree Credential Studio (Requirement 10)
+          </h2>
+          <p class="text-xs text-indigo-800 mt-1">
+            Fulfills AICTE mandate: Displays institutional Student ID and national APAAR ID side-by-side with an Ed25519-signed QR code.
+          </p>
+        </div>
+        <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold rounded-xl flex items-center gap-2 transition shadow-md shadow-indigo-600/20">
+          <i data-lucide="printer" class="w-4 h-4"></i> Print Official Degree
+        </button>
+      </div>
+
+      <!-- Printable Degree Certificate Canvas (Light Theme) -->
+      <div class="flex justify-center">
+        <div id="printableDegree" class="w-full max-w-3xl bg-white border-8 border-slate-100 p-8 sm:p-10 rounded-3xl shadow-xl relative text-slate-800 border-double">
+          
+          <div class="text-center pb-6 border-b border-slate-200">
+            <div class="inline-flex p-3 bg-blue-50 rounded-full border border-blue-200 mb-2">
+              <i data-lucide="graduation-cap" class="w-10 h-10 text-blue-600"></i>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-serif font-black tracking-wider text-slate-900">BHARATI VIDYAPEETH COLLEGE OF ENGINEERING</h1>
+            <p class="text-xs text-slate-500 uppercase tracking-widest mt-1 font-semibold">AICTE APPROVED INSTITUTION • AFFILIATED TO MUMBAI UNIVERSITY</p>
+          </div>
+
+          <div class="py-8 text-center space-y-3.5">
+            <p class="text-xs text-slate-500 uppercase tracking-widest font-semibold">This is to certify that</p>
+            <h2 id="degree-student-name" class="text-2xl sm:text-3xl font-serif font-bold text-slate-900">Nishant Dattatray Gaikwad</h2>
+            <p class="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
+              has successfully fulfilled all statutory curriculum regulations and passed the prescribed examinations for the degree of
+            </p>
+            <h3 class="text-lg sm:text-xl font-serif font-bold text-blue-800">Bachelor of Engineering in Computer Engineering</h3>
+            <p class="text-xs text-slate-500 font-medium">Graduated First Class with Distinction in the Academic Session 2026</p>
+          </div>
+
+          <!-- Dual Identity Box & 2D Signed QR Code -->
+          <div class="mt-6 pt-6 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+            <div class="space-y-2.5 text-xs">
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">Degree Awarding Body ID (Roll No)</span>
+                <span id="degree-roll-no" class="font-mono font-bold text-blue-700 text-sm">BVCOE-CS-2024-042</span>
+              </div>
+              <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <span class="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">National Academic Identity (APAAR ID)</span>
+                <span id="degree-apaar-no" class="font-mono font-bold text-emerald-700 text-sm">8472-9104-3821</span>
+              </div>
+              <p class="text-[10px] text-slate-400">
+                Digitally authenticated under Section 9A of IT Act 2000. Verified against AICTE Central Registry.
+              </p>
+            </div>
+
+            <div class="flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-200 w-48 mx-auto">
+              <div id="degreeQrCode" class="p-1 bg-white rounded-lg shadow-sm border border-slate-200"></div>
+              <span class="text-[9px] text-slate-600 font-mono mt-2 font-bold text-center">Scan to Verify Authenticity</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 5: PUBLIC ZERO-TRUST VERIFIER -->
+    <!-- ========================================== -->
+    <section id="view-verifier" class="tab-content hidden space-y-6">
+      <div class="max-w-2xl mx-auto bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+        
+        <div class="text-center mb-6">
+          <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center mx-auto mb-3 shadow-sm">
+            <i data-lucide="shield-check" class="w-6 h-6"></i>
+          </div>
+          <h2 class="text-lg font-bold text-slate-900">Zero-Trust Credential Verifier</h2>
+          <p class="text-xs text-slate-500 mt-1">
+            Simulate how employers, embassies, and accreditation bodies verify degrees in sub-seconds.
+          </p>
+        </div>
+
+        <!-- Mode Toggle -->
+        <div class="flex justify-center mb-6">
+          <div class="bg-slate-100 p-1 rounded-xl border border-slate-200 flex text-xs">
+            <button onclick="setVerifierMode('online')" id="vmode-online" class="px-3.5 py-1.5 rounded-lg bg-white text-blue-700 font-semibold shadow-sm border border-slate-200/80">
+              Live Gateway Query
+            </button>
+            <button onclick="setVerifierMode('offline')" id="vmode-offline" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-medium flex items-center gap-1.5 transition">
+              <i data-lucide="wifi-off" class="w-3.5 h-3.5 text-slate-500"></i> Offline Zero-Trust (Ed25519)
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1">Enter APAAR ID or Scan Hash</label>
+            <div class="flex gap-2">
+              <input type="text" id="verifierInput" value="847291043821" placeholder="Enter 12-digit APAAR ID" class="flex-1 bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <button onclick="runVerification()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 shadow-md shadow-blue-600/20 transition">
+                <i data-lucide="search" class="w-3.5 h-3.5"></i> Verify
+              </button>
+            </div>
+          </div>
+
+          <!-- Dynamic Verification Result Panel -->
+          <div id="verifierResultPanel" class="mt-6 p-5 rounded-xl border border-slate-200 bg-slate-50 hidden">
+            <!-- Populated via JavaScript -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- NOTIFICATION TOAST -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div id="toastContent" class="bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 text-xs">
+      <i id="toastIcon" data-lucide="info" class="w-4 h-4 text-blue-600"></i>
+      <span id="toastMsg" class="font-medium">Notification</span>
+    </div>
+  </div>
+
+  <!-- SCRIPT ENGINE -->
+  <script>
+    // ==========================================
+    // 1. IN-MEMORY STATE & DATABASE
+    // ==========================================
+    const DB = {
+      institutions: {
+        BVCOE: {
+          code: "BVCOE",
+          name: "Bharati Vidyapeeth College of Engineering, Navi Mumbai",
+          sanctionedIntake: 120,
+          students: []
+        },
+        COEP: {
+          code: "COEP",
+          name: "COEP Technological University, Pune",
+          sanctionedIntake: 180,
+          students: []
+        },
+        VJTI: {
+          code: "VJTI",
+          name: "Veermata Jijabai Technological Institute, Mumbai",
+          sanctionedIntake: 120,
+          students: []
+        }
+      },
+      currentInst: "BVCOE",
+      auditLogs: [],
+      verifierMode: 'online'
+    };
+
+    // ==========================================
+    // 2. MATHEMATICAL ALGORITHMS
+    // ==========================================
+
+    // Verhoeff Algorithm Tables (D5 Dihedral Group mod 10)
+    const verhoeff_d = [
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      [1, 2, 3, 4, 0, 6, 7, 8, 9, 5],
+      [2, 3, 4, 0, 1, 7, 8, 9, 5, 6],
+      [3, 4, 0, 1, 2, 8, 9, 5, 6, 7],
+      [4, 0, 1, 2, 3, 9, 5, 6, 7, 8],
+      [5, 9, 8, 7, 6, 0, 4, 3, 2, 1],
+      [6, 5, 9, 8, 7, 1, 0, 4, 3, 2],
+      [7, 6, 5, 9, 8, 2, 1, 0, 4, 3],
+      [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
+      [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
+    ];
+    const verhoeff_p = [
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+      [1, 5, 7, 6, 2, 8, 3, 0, 9, 4],
+      [5, 8, 0, 3, 7, 9, 4, 1, 6, 2],
+      [8, 9, 1, 6, 0, 4, 3, 5, 2, 7],
+      [9, 4, 5, 3, 1, 2, 6, 8, 7, 0],
+      [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
+      [2, 7, 9, 3, 8, 0, 6, 4, 1, 5],
+      [7, 0, 4, 6, 9, 1, 3, 2, 5, 8]
+    ];
+    const verhoeff_inv = [0, 4, 3, 2, 1, 5, 6, 7, 8, 9];
+
+    function validateVerhoeff(numStr) {
+      if (!/^\d+$/.test(numStr)) return false;
+      let c = 0;
+      let myArray = String(numStr).split('').reverse().map(Number);
+      for (let i = 0; i < myArray.length; i++) {
+        c = verhoeff_d[c][verhoeff_p[i % 8][myArray[i]]];
+      }
+      return c === 0;
+    }
+
+    // Jaro-Winkler Metric Calculation
+    function calculateJaroWinkler(s1, s2) {
+      s1 = s1.toLowerCase();
+      s2 = s2.toLowerCase();
+      if (s1 === s2) return 1.0;
+      
+      const len1 = s1.length;
+      const len2 = s2.length;
+      const matchDistance = Math.floor(Math.max(len1, len2) / 2) - 1;
+      
+      const s1Matches = new Array(len1).fill(false);
+      const s2Matches = new Array(len2).fill(false);
+      
+      let matches = 0;
+      for (let i = 0; i < len1; i++) {
+        const start = Math.max(0, i - matchDistance);
+        const end = Math.min(i + matchDistance + 1, len2);
+        for (let j = start; j < end; j++) {
+          if (!s2Matches[j] && s1[i] === s2[j]) {
+            s1Matches[i] = true;
+            s2Matches[j] = true;
+            matches++;
+            break;
+          }
+        }
+      }
+      if (matches === 0) return 0.0;
+      
+      let t = 0;
+      let point = 0;
+      for (let i = 0; i < len1; i++) {
+        if (s1Matches[i]) {
+          while (!s2Matches[point]) point++;
+          if (s1[i] !== s2[point]) t++;
+          point++;
+        }
+      }
+      t /= 2;
+      
+      const jaro = (matches / len1 + matches / len2 + (matches - t) / matches) / 3;
+      let prefix = 0;
+      for (let i = 0; i < Math.min(4, Math.min(len1, len2)); i++) {
+        if (s1[i] === s2[i]) prefix++;
+        else break;
+      }
+      return jaro + prefix * 0.1 * (1 - jaro);
+    }
+
+    // ==========================================
+    // 3. UI STATE & VIEW CONTROLLER
+    // ==========================================
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-blue-700', 'shadow-sm', 'border', 'border-slate-200/80');
+        btn.classList.add('text-slate-600');
+      });
+      
+      document.getElementById(tabId).classList.remove('hidden');
+      const activeBtn = document.getElementById('btn-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-slate-600');
+        activeBtn.classList.add('bg-white', 'text-blue-700', 'shadow-sm', 'border', 'border-slate-200/80');
+      }
+      lucide.createIcons();
+
+      if (tabId === 'view-cockpit') {
+        renderCockpitCharts();
+      }
+      if (tabId === 'view-credentials') {
+        generateDegreeCredential();
+      }
+    }
+
+    function onInstituteChange() {
+      DB.currentInst = document.getElementById('instSelect').value;
+      updateMeters();
+      renderStagingTable();
+      showToast(`Switched workspace to ${DB.currentInst}`, 'info');
+    }
+
+    function updateMeters() {
+      const inst = DB.institutions[DB.currentInst];
+      const students = inst.students;
+
+      const regularCount = students.filter(s => s.quota === 'REGULAR' || s.quota === 'NRI').length;
+      const tfwCount = students.filter(s => s.quota === 'TFW').length;
+      const fnCount = students.filter(s => s.quota === 'FN_OCI').length;
+      const nriCount = students.filter(s => s.quota === 'NRI').length;
+
+      const tfwCap = Math.floor(inst.sanctionedIntake * 0.05);
+      const fnCap = Math.floor(inst.sanctionedIntake * 0.15);
+      const nriCap = Math.floor(inst.sanctionedIntake * 0.05);
+
+      // Intake meter
+      document.getElementById('stat-intake-ratio').innerText = `${regularCount} / ${inst.sanctionedIntake}`;
+      const intakePct = Math.min(100, (regularCount / inst.sanctionedIntake) * 100);
+      const intakeBar = document.getElementById('stat-intake-bar');
+      intakeBar.style.width = intakePct + '%';
+      intakeBar.className = regularCount > inst.sanctionedIntake ? 'bg-rose-600 h-full' : 'bg-blue-600 h-full';
+
+      // TFW meter
+      document.getElementById('stat-tfw-ratio').innerText = `${tfwCount} / ${tfwCap}`;
+      document.getElementById('stat-tfw-bar').style.width = Math.min(100, (tfwCount / tfwCap) * 100) + '%';
+
+      // FN meter
+      document.getElementById('stat-fn-ratio').innerText = `${fnCount} / ${fnCap}`;
+      document.getElementById('stat-fn-bar').style.width = Math.min(100, (fnCount / fnCap) * 100) + '%';
+
+      // NRI meter
+      document.getElementById('stat-nri-ratio').innerText = `${nriCount} / ${nriCap}`;
+      document.getElementById('stat-nri-bar').style.width = Math.min(100, (nriCount / nriCap) * 100) + '%';
+    }
+
+    function renderStagingTable() {
+      const tbody = document.getElementById('stagingTableBody');
+      const students = DB.institutions[DB.currentInst].students;
+      tbody.innerHTML = '';
+
+      if (students.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-slate-400 font-sans">No student records staged. Enter a candidate or load sample batch.</td></tr>`;
+        document.getElementById('batchSummaryText').innerText = '0 records staged.';
+        return;
+      }
+
+      students.forEach((s) => {
+        const tr = document.createElement('tr');
+        tr.className = s.status === 'ERROR' ? 'bg-rose-50/70' : 'hover:bg-slate-50';
+        tr.innerHTML = `
+          <td class="p-3 text-slate-700 font-bold">${s.roll}</td>
+          <td class="p-3 text-slate-900 font-sans font-medium">${s.name}</td>
+          <td class="p-3 font-mono ${s.apaarValid ? 'text-blue-700' : 'text-rose-600 font-bold'}">${s.apaar}</td>
+          <td class="p-3 text-slate-600 font-sans"><span class="px-2 py-0.5 rounded-md bg-slate-100 text-[11px] font-semibold">${s.quota}</span></td>
+          <td class="p-3 font-sans">
+            ${s.status === 'VALID' 
+              ? '<span class="text-emerald-700 font-bold flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i> Valid</span>' 
+              : `<span class="text-rose-700 font-bold flex items-center gap-1"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-rose-600"></i> ${s.errorMsg || 'Validation Error'}</span>`}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('batchSummaryText').innerText = `${students.length} record(s) ready in staging area.`;
+      lucide.createIcons();
+    }
+
+    function checkApaarChecksumLive(val) {
+      const badge = document.getElementById('verhoeff-badge');
+      if (val.length < 12) {
+        badge.className = 'text-[11px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 font-medium';
+        badge.innerText = `${12 - val.length} digits required`;
+        return;
+      }
+      const isValid = validateVerhoeff(val);
+      if (isValid) {
+        badge.className = 'text-[11px] px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold';
+        badge.innerText = 'Verhoeff Checksum Valid';
+      } else {
+        badge.className = 'text-[11px] px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 font-bold';
+        badge.innerText = 'Invalid Checksum (Mod 10)';
+      }
+    }
+
+    function handleSingleStudentSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('inp-name').value;
+      const apaar = document.getElementById('inp-apaar').value;
+      const roll = document.getElementById('inp-roll').value;
+      const quota = document.getElementById('inp-quota').value;
+
+      const apaarValid = validateVerhoeff(apaar);
+      const student = {
+        name, apaar, roll, quota, apaarValid,
+        status: apaarValid ? 'VALID' : 'ERROR',
+        errorMsg: apaarValid ? null : 'Checksum mismatch'
+      };
+
+      DB.institutions[DB.currentInst].students.push(student);
+      updateMeters();
+      renderStagingTable();
+      showToast('Student record added to staging roster', 'success');
+      document.getElementById('studentForm').reset();
+      document.getElementById('verhoeff-badge').innerText = '12 digits required';
+      document.getElementById('verhoeff-badge').className = 'text-[11px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 font-medium';
+    }
+
+    function fillDemoStudent() {
+      document.getElementById('inp-name').value = "Nishant Dattatray Gaikwad";
+      document.getElementById('inp-apaar').value = "847291043821";
+      document.getElementById('inp-roll').value = "BVCOE-CS-042";
+      document.getElementById('inp-quota').value = "REGULAR";
+      checkApaarChecksumLive("847291043821");
+    }
+
+    function loadSampleBatch() {
+      const inst = DB.institutions[DB.currentInst];
+      inst.students = [
+        { roll: `${inst.code}-CS-001`, name: "Aarav Sharma", apaar: "847291043821", quota: "REGULAR", apaarValid: true, status: "VALID" },
+        { roll: `${inst.code}-CS-002`, name: "Priya Patil", apaar: "739201847190", quota: "TFW", apaarValid: true, status: "VALID" },
+        { roll: `${inst.code}-CS-003`, name: "Aditya Deshmukh", apaar: "192837465012", quota: "REGULAR", apaarValid: true, status: "VALID" },
+        { roll: `${inst.code}-CS-004`, name: "Zoya Khan", apaar: "583920194821", quota: "FN_OCI", apaarValid: true, status: "VALID" },
+        { roll: `${inst.code}-CS-005`, name: "Siddharth Joshi", apaar: "928301928475", quota: "NRI", apaarValid: true, status: "VALID" }
+      ];
+      updateMeters();
+      renderStagingTable();
+      showToast('Pre-loaded 5 compliant candidate records', 'info');
+      logAudit(`[BATCH INGEST] Staged 5 compliant candidate records for ${inst.code}.`);
+    }
+
+    function clearBatch() {
+      DB.institutions[DB.currentInst].students = [];
+      updateMeters();
+      renderStagingTable();
+      showToast('Roster cleared', 'info');
+    }
+
+    function resetInstitutionData() {
+      clearBatch();
+    }
+
+    function commitBatchToAICTE() {
+      const inst = DB.institutions[DB.currentInst];
+      if (inst.students.length === 0) {
+        showToast('Cannot commit empty roster', 'warning');
+        return;
+      }
+      const hasErrors = inst.students.some(s => s.status === 'ERROR');
+      if (hasErrors) {
+        showToast('Commit blocked: Resolve staging errors first', 'error');
+        return;
+      }
+      showToast(`Roster committed to AICTE Central Registry!`, 'success');
+      logAudit(`[REGISTRY COMMIT] Finalized roster for ${inst.code} with ${inst.students.length} verified APAAR identities.`);
+    }
+
+    // ==========================================
+    // 4. ANOMALY ENGINE DEMO TRIGGERS
+    // ==========================================
+    function logAudit(msg) {
+      const consoleEl = document.getElementById('anomalyAuditLog');
+      const time = new Date().toLocaleTimeString();
+      const div = document.createElement('div');
+      div.innerHTML = `<span class="text-blue-400 font-bold">[${time}]</span> ${msg}`;
+      consoleEl.prepend(div);
+    }
+
+    function triggerIntakeBreachDemo() {
+      const inst = DB.institutions.BVCOE;
+      inst.students = [];
+      for (let i = 1; i <= 125; i++) {
+        inst.students.push({
+          roll: `BVCOE-CS-${String(i).padStart(3, '0')}`,
+          name: `Candidate ${i}`,
+          apaar: "847291043821",
+          quota: "REGULAR",
+          apaarValid: true,
+          status: i > 120 ? "ERROR" : "VALID",
+          errorMsg: i > 120 ? "APH Intake Exceeded (Max 120)" : null
+        });
+      }
+      DB.currentInst = "BVCOE";
+      document.getElementById('instSelect').value = "BVCOE";
+      updateMeters();
+      renderStagingTable();
+      document.getElementById('cockpit-overruns').innerText = "1";
+      
+      logAudit(`<span class="text-rose-400 font-bold">[BREACH DETECTED]</span> BVCOE attempted 125 regular admissions. Approved capacity ceiling is 120. Extra 5 records flagged and frozen.`);
+      showToast("Intake Breach Triggered: 5 admissions quarantined!", "error");
+    }
+
+    function triggerDualEnrollmentDemo() {
+      const collidingApaar = "847291043821";
+      DB.institutions.COEP.students = [
+        { roll: "COEP-CS-009", name: "Rohan Kulkarni", apaar: collidingApaar, quota: "REGULAR", apaarValid: true, status: "VALID" }
+      ];
+      
+      const newCandidate = {
+        roll: "BVCOE-CS-099",
+        name: "Rohan Kulkarni",
+        apaar: collidingApaar,
+        quota: "REGULAR",
+        apaarValid: true,
+        status: "ERROR",
+        errorMsg: "Duplicate Full-Time Enrollment (COEP)"
+      };
+      
+      DB.institutions.BVCOE.students.push(newCandidate);
+      DB.currentInst = "BVCOE";
+      document.getElementById('instSelect').value = "BVCOE";
+      updateMeters();
+      renderStagingTable();
+      
+      document.getElementById('cockpit-collisions').innerText = "15";
+      logAudit(`<span class="text-amber-400 font-bold">[COLLISION LOCK]</span> APAAR ID ${collidingApaar} is actively enrolled at COEP Pune. Registration at BVCOE locked in PROVISIONAL HOLD.`);
+      showToast("Collision Trap Tripped: Concurrent regular enrollment detected!", "warning");
+    }
+
+    function testSandboxVerhoeff(val) {
+      const resEl = document.getElementById('sandbox-verhoeff-res');
+      if (val.length < 12) {
+        resEl.innerHTML = `<span class="text-slate-400">Awaiting 12 digits...</span>`;
+        return;
+      }
+      const valid = validateVerhoeff(val);
+      if (valid) {
+        resEl.innerHTML = `<span class="text-emerald-700 flex items-center gap-1 font-semibold"><i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i> Checksum valid in D5 dihedral group!</span>`;
+      } else {
+        resEl.innerHTML = `<span class="text-rose-700 flex items-center gap-1 font-semibold"><i data-lucide="alert-circle" class="w-4 h-4 text-rose-600"></i> Transposition error detected by Verhoeff check!</span>`;
+      }
+      lucide.createIcons();
+    }
+
+    function runFuzzyMatchTest() {
+      const s1 = document.getElementById('fuzzy1').value;
+      const s2 = document.getElementById('fuzzy2').value;
+      const score = calculateJaroWinkler(s1, s2).toFixed(3);
+      const resEl = document.getElementById('fuzzy-result');
+      
+      if (score >= 0.90) {
+        resEl.innerHTML = `Similarity Score ($d_w$): <span class="font-bold text-emerald-700">${score}</span> (High Confidence: Auto-reconciled with DigiLocker)`;
+      } else if (score >= 0.80) {
+        resEl.innerHTML = `Similarity Score ($d_w$): <span class="font-bold text-amber-700">${score}</span> (Soft Warning: Requires registrar verification)`;
+      } else {
+        resEl.innerHTML = `Similarity Score ($d_w$): <span class="font-bold text-rose-700">${score}</span> (Mismatch: Quarantined for KYC review)`;
+      }
+    }
+
+    // ==========================================
+    // 5. APEX COCKPIT TELEMETRY & CHARTS
+    // ==========================================
+    let chart1 = null;
+    let chart2 = null;
+
+    function renderCockpitCharts() {
+      const ctx1 = document.getElementById('stateIntakeChart')?.getContext('2d');
+      const ctx2 = document.getElementById('quotaDistChart')?.getContext('2d');
+
+      if (chart1) chart1.destroy();
+      if (chart2) chart2.destroy();
+
+      if (ctx1) {
+        chart1 = new Chart(ctx1, {
+          type: 'bar',
+          data: {
+            labels: ['Maharashtra', 'Tamil Nadu', 'Karnataka', 'Delhi NCR', 'Gujarat'],
+            datasets: [
+              { label: 'Sanctioned Intake', data: [180000, 160000, 140000, 75000, 65000], backgroundColor: '#2563EB', borderRadius: 6 },
+              { label: 'Actual Enrolled', data: [168000, 142000, 131000, 69000, 58000], backgroundColor: '#10B981', borderRadius: 6 }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { grid: { color: '#F1F5F9' }, ticks: { color: '#64748B', font: { weight: 'bold' } } },
+              y: { grid: { color: '#F1F5F9' }, ticks: { color: '#64748B' } }
+            },
+            plugins: { legend: { labels: { color: '#334155', font: { weight: 'bold' } } } }
+          }
+        });
+      }
+
+      if (ctx2) {
+        chart2 = new Chart(ctx2, {
+          type: 'doughnut',
+          data: {
+            labels: ['Merit', 'TFW (5%)', 'FN/OCI (15%)', 'NRI'],
+            datasets: [{
+              data: [82, 5, 8, 5],
+              backgroundColor: ['#2563EB', '#10B981', '#9333EA', '#F59E0B']
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#334155', font: { weight: 'bold' } } } }
+          }
+        });
+      }
+    }
+
+    function exportAccreditationPackage() {
+      showToast("Generating NBA/NAAC Tier-1 Compliance Package...", "info");
+      setTimeout(() => {
+        showToast("Compliance Package (.CSV & Verified Roster) downloaded!", "success");
+      }, 1000);
+    }
+
+    // ==========================================
+    // 6. DEGREE GENERATOR & VERIFIER (REQ 10)
+    // ==========================================
+    function generateDegreeCredential() {
+      const qrContainer = document.getElementById('degreeQrCode');
+      qrContainer.innerHTML = '';
+
+      const payload = {
+        authority: "AICTE_REGULATION_BUREAU",
+        student_id: "BVCOE-CS-2024-042",
+        apaar_id: "8472-9104-3821",
+        candidate: "Nishant Dattatray Gaikwad",
+        institution: "Bharati Vidyapeeth College of Engineering",
+        degree: "B.E. Computer Engineering",
+        session: 2026,
+        canonical_sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        ed25519_sig: "3045022100e4d9...signedByAICTERootKey"
+      };
+
+      const qrString = `https://verify.aicte-india.org/credential?apaar=${payload.apaar_id}&roll=${payload.student_id}&hash=${payload.canonical_sha256.substring(0, 16)}`;
+
+      new QRCode(qrContainer, {
+        text: qrString,
+        width: 140,
+        height: 140,
+        colorDark: "#0F172A",
+        colorLight: "#FFFFFF",
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+
+    function setVerifierMode(mode) {
+      DB.verifierMode = mode;
+      document.getElementById('vmode-online').className = mode === 'online' 
+        ? 'px-3.5 py-1.5 rounded-lg bg-white text-blue-700 font-semibold shadow-sm border border-slate-200/80' 
+        : 'px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-medium';
+      document.getElementById('vmode-offline').className = mode === 'offline' 
+        ? 'px-3.5 py-1.5 rounded-lg bg-white text-indigo-700 font-semibold shadow-sm border border-slate-200/80 flex items-center gap-1.5' 
+        : 'px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 font-medium flex items-center gap-1.5';
+    }
+
+    function runVerification() {
+      const input = document.getElementById('verifierInput').value.trim();
+      const panel = document.getElementById('verifierResultPanel');
+      panel.classList.remove('hidden');
+
+      if (DB.verifierMode === 'offline') {
+        panel.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-center gap-2 text-indigo-800 font-bold text-sm">
+              <i data-lucide="cpu" class="w-4 h-4 text-indigo-600"></i>
+              Offline Zero-Trust Verification (Ed25519 PKI)
+            </div>
+            <p class="text-xs text-slate-500">
+              Verified without internet connection using embedded AICTE public key registry.
+            </p>
+            <div class="p-3.5 bg-white rounded-xl border border-slate-200 text-xs font-mono space-y-1.5 shadow-sm">
+              <div><span class="text-slate-400">Payload Hash:</span> SHA-256 match confirmed</div>
+              <div><span class="text-slate-400">Public Key:</span> ed25519:AICTE_ROOT_KEY_2026</div>
+              <div><span class="text-slate-400">Signature:</span> <span class="text-emerald-700 font-bold">MATHEMATICALLY VALID</span></div>
+            </div>
+            <div class="text-xs text-emerald-700 font-bold flex items-center gap-1">
+              <i data-lucide="check-check" class="w-4 h-4 text-emerald-600"></i> Degree authenticity verified (Tamper-proof).
+            </div>
+          </div>
+        `;
+      } else {
+        panel.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-center gap-2 text-blue-800 font-bold text-sm">
+              <i data-lucide="database" class="w-4 h-4 text-blue-600"></i>
+              Authoritative Gateway Record Found
+            </div>
+            <div class="p-3.5 bg-white rounded-xl border border-slate-200 text-xs font-mono space-y-1.5 shadow-sm">
+              <div><span class="text-slate-400">Student Name:</span> Nishant Dattatray Gaikwad</div>
+              <div><span class="text-slate-400">APAAR ID:</span> 8472-9104-3821 (Active)</div>
+              <div><span class="text-slate-400">Student Roll:</span> BVCOE-CS-2024-042</div>
+              <div><span class="text-slate-400">Institution:</span> Bharati Vidyapeeth College of Engineering</div>
+              <div><span class="text-slate-400">Approval Status:</span> AICTE Approved (Intake Compliant)</div>
+              <div><span class="text-slate-400">DigiLocker URI:</span> in.gov.nad:award:2026-bvcoe-cs-042</div>
+            </div>
+            <div class="text-xs text-emerald-700 font-bold flex items-center gap-1">
+              <i data-lucide="check" class="w-4 h-4 text-emerald-600"></i> Genuine Academic Award Confirmed.
+            </div>
+          </div>
+        `;
+      }
+      lucide.createIcons();
+    }
+
+    // ==========================================
+    // 7. TOAST NOTIFICATIONS
+    // ==========================================
+    function showToast(msg, type = 'info') {
+      const toast = document.getElementById('toast');
+      const content = document.getElementById('toastContent');
+      const text = document.getElementById('toastMsg');
+      const icon = document.getElementById('toastIcon');
+
+      text.innerText = msg;
+      if (type === 'error') {
+        content.className = 'bg-rose-50 border border-rose-300 text-rose-900 px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 text-xs';
+        icon.setAttribute('data-lucide', 'alert-circle');
+      } else if (type === 'success') {
+        content.className = 'bg-emerald-50 border border-emerald-300 text-emerald-900 px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 text-xs';
+        icon.setAttribute('data-lucide', 'check-circle-2');
+      } else if (type === 'warning') {
+        content.className = 'bg-amber-50 border border-amber-300 text-amber-900 px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 text-xs';
+        icon.setAttribute('data-lucide', 'alert-triangle');
+      } else {
+        content.className = 'bg-white border border-slate-300 text-slate-900 px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 text-xs';
+        icon.setAttribute('data-lucide', 'info');
+      }
+
+      lucide.createIcons();
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
+    }
+
+    // INITIALIZATION
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      updateMeters();
+      renderStagingTable();
+      generateDegreeCredential();
+    });
+  </script>
+</body>
+</html>
